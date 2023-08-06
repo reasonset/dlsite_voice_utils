@@ -1,0 +1,12 @@
+[Nemo Action]
+Name=Play voice with cover
+Comment=Play voice content with cover image.
+
+EscapeSpaces=true
+Exec=<voicempv.zsh "%P">
+
+Icon-Name=mpv
+
+Selection=none
+Extensions=any;
+Dependencies=mpv;

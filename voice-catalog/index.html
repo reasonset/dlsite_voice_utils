@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <title>音声作品検索</title>
+    <style>
+.sorter {
+  background-color: rgb(197, 228, 232);
+  cursor: pointer;
+}
+table img {
+  max-width: 100px;
+}
+    </style>
+  </head>
+  <body>
+    <fieldset>
+      <legend>検索</legend>
+      <form id="SearchForm">
+      </label>
+      <label>タグ
+        <select id="TagOptions">
+          <option value="">---</option>
+        </select>
+      </label>
+      <label>評価下限 <input type="text" size="2" id="SearchRate" /></label>
+        <label>出演者
+          <select id="ArtistOptions">
+            <option value="">---</option>
+          </select>
+        </label>
+        <label>サークル
+          <select id="CircleOptions">
+            <option value="">---</option>
+          </select>
+        </label>
+        <label>キーワード <input type="text" size="16" id="SearchKw" /></label>
+      </form>
+    </fieldset>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>カバー</th>
+          <th name="sorter" class="sorter" data-prop="key" data-type="str">作品名</th>
+          <th name="sorter" class="sorter" data-prop="circle" data-type="str">サークル</th>
+          <th name="sorter" class="sorter" data-prop="series" data-type="str">シリーズ</th>
+          <th name="sorter" class="sorter" data-prop="actress" data-type="str[]">出演者</th>
+          <th name="sorter" class="sorter" data-prop="btime" data-type="dstr">btime</th>
+          <th>タグ</th>
+          <th name="sorter" class="sorter" data-prop="duration" data-type="num">長さ</th>
+          <th name="sorter" class="sorter" data-prop="rate" data-type="num">評価</th>
+          <th>概要</th>
+        </tr>
+      </thead>
+      <tbody id="ListBody">
+      </tbody>
+    </table>
+  </body>
+  <script src="./meta.js"></script>
+  <script src="./app.js"></script>
+</html>
