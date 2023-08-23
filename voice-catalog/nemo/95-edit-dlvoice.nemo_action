@@ -1,0 +1,11 @@
+[Nemo Action]
+Name=Edit database about this title
+Comment=Edit DLVoice database about this DLSite ASMR Voice title
+
+Exec=<edit-dlvoice.rb "%P">
+Terminal=true
+
+Icon-Name=server
+
+Selection=Any
+Extensions=any;

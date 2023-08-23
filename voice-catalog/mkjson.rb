@@ -2,6 +2,7 @@
 require 'json'
 require 'yaml'
 require 'nkf'
+require 'set'
 
 artist = {
   title: Hash.new {|h, k| h[k] = []},
@@ -78,6 +79,16 @@ meta.each do |k, v|
       v["imgpath"] = imgfiles[0][v["path"].length .. -1]
     end
   end
+
+  # Audio file list
+  flist = Set.new
+  Dir.glob("#{v["path"]}/**/*.{mp3,wav,WAV,MP3,m4a,aac,ogg,flac}").each do |filename|
+    fn = File.basename(filename ,".*")
+    next if ["SEなし", "SE無し", "seなし", "se無し", "noSE", "nonSE", "OFFSE", "SECut", "SEcut", "NoSFX", "ＳＥなし", "ＳＥ無し", "液体音", "効果音"].any? {|i| fn.include? i } # Include
+    next if [/^反転/, /_反転$/, /_voice$/, /_voice+指$/].any? {|i| i === fn }
+    flist << fn
+  end
+  v["filelist"] = flist.to_a.sort
 
   # expand path
   v["path"] = File.absolute_path v["path"]

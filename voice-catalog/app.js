@@ -125,6 +125,17 @@ function create_table(cond={}) {
       description.appendChild(description_body)
     }
     tr.appendChild(description)
+    const filelist = document.createElement("td")
+    filelist.className = "filelist filelist_col"
+    const filelist_ul = document.createElement("ul")
+    for (const file of meta[i].filelist) {
+      const li = document.createElement("li")
+      const li_text = document.createTextNode(file)
+      li.appendChild(li_text)
+      filelist_ul.appendChild(li)
+    }
+    filelist.appendChild(filelist_ul)
+    tr.appendChild(filelist)
 
     tbody.appendChild(tr)
   }
@@ -174,4 +185,13 @@ sorters.forEach(i => {
     }
     show(e)
   })
+})
+
+document.getElementById("HideFilelist").addEventListener("change", function(e) {
+  const table = document.getElementById("MainTable")
+  if (e.target.checked) {
+    table.classList.remove("hide_filelist")
+  } else {
+    table.classList.add("hide_filelist")
+  }
 })

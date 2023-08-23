@@ -9,6 +9,12 @@
 table img {
   max-width: 100px;
 }
+/* .filelist {
+  font-size: 80%;
+} */
+.hide_filelist .filelist_col {
+  display: none;
+}
     </style>
   </head>
   <body>
@@ -34,8 +40,9 @@ table img {
         </label>
         <label>キーワード <input type="text" size="16" id="SearchKw" /></label>
       </form>
+      <label><input type="checkbox" id="HideFilelist" /> ファイルリストを表示</label>
     </fieldset>
-    <table border="1">
+    <table border="1" id="MainTable" class="hide_filelist">
       <thead>
         <tr>
           <th>カバー</th>
@@ -48,6 +55,7 @@ table img {
           <th name="sorter" class="sorter" data-prop="duration" data-type="num">長さ</th>
           <th name="sorter" class="sorter" data-prop="rate" data-type="num">評価</th>
           <th>概要</th>
+          <th class="filelist_col">ファイルリスト</th>
         </tr>
       </thead>
       <tbody id="ListBody">
