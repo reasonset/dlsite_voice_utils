@@ -102,13 +102,35 @@ function create_table(cond={}) {
     series.innerHTML = meta[i].series
     tr.appendChild(series)
     const actress = document.createElement("td")
-    actress.innerHTML = meta[i].actress.join(", ")
+    if (meta[i].actress) {
+      const actress_ul = document.createElement("ul")
+      actress_ul.className = "inline_list"
+      for (const j of meta[i].actress) {
+        const li = document.createElement("li")
+        li.className = "inline_list"
+        const li_text = document.createTextNode(j)
+        li.appendChild(li_text)
+        actress_ul.appendChild(li)
+      }
+      actress.appendChild(actress_ul)
+    }
     tr.appendChild(actress)
     const date = document.createElement("td")
     date.innerHTML = meta[i].btime
     tr.appendChild(date)
     const tags = document.createElement("td")
-    tags.innerHTML = meta[i].tags.join(", ")
+    if (meta[i].tags) {
+      const tags_ul = document.createElement("ul")
+      tags_ul.className = "inline_list"
+      for (const j of meta[i].tags) {
+        const li = document.createElement("li")
+        li.className = "inline_list"
+        const li_text = document.createTextNode(j)
+        li.appendChild(li_text)
+        tags_ul.appendChild(li)
+      }
+      tags.appendChild(tags_ul)
+    }
     tr.appendChild(tags)
     const duration = document.createElement("td")
     duration.innerHTML = meta[i].duration || ""
@@ -125,6 +147,18 @@ function create_table(cond={}) {
       description.appendChild(description_body)
     }
     tr.appendChild(description)
+    const note = document.createElement("td")
+    if (meta[i].note) {
+      const note_ul = document.createElement("ul")
+      for (const j of meta[i].note) {
+        const li = document.createElement("li")
+        const li_text = document.createTextNode(j)
+        li.appendChild(li_text)
+        note_ul.appendChild(li)
+      }
+      note.appendChild(note_ul)
+    }
+    tr.appendChild(note)
     const filelist = document.createElement("td")
     filelist.className = "filelist filelist_col"
     const filelist_ul = document.createElement("ul")
@@ -194,4 +228,16 @@ document.getElementById("HideFilelist").addEventListener("change", function(e) {
   } else {
     table.classList.add("hide_filelist")
   }
+})
+
+sf.ResetBtn.addEventListener("click", function(e) {
+  sf.reset()
+  e.preventDefault()
+  sort_status = {
+    by: "btime",
+    desc: false,
+    type: null,
+    default: "1970-01-01"
+  }
+  show(e)
 })

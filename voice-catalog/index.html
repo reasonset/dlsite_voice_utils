@@ -6,6 +6,17 @@
   background-color: rgb(197, 228, 232);
   cursor: pointer;
 }
+ul.inline_list {
+  display: inline-block;
+  padding: 2px;
+  margin: 2px;
+  list-style-type: none;
+}
+li.inline_list {
+  display: inline-block;
+  margin-right: 0.5em;
+  background-color: #ffecf1;
+}
 table img {
   max-width: 100px;
 }
@@ -14,6 +25,18 @@ table img {
 } */
 .hide_filelist .filelist_col {
   display: none;
+}
+#ColTitle {
+  max-width: 32em;
+  width: 32em;
+}
+#ColTags {
+  max-width: 18em;
+  width: 18em;
+}
+#ColNote {
+  max-width: 24em;
+  width: 24em;
 }
     </style>
   </head>
@@ -39,14 +62,29 @@ table img {
           </select>
         </label>
         <label>キーワード <input type="text" size="16" id="SearchKw" /></label>
+        <input id="ResetBtn" type="reset" />
       </form>
       <label><input type="checkbox" id="HideFilelist" /> ファイルリストを表示</label>
     </fieldset>
     <table border="1" id="MainTable" class="hide_filelist">
+      <colgroup>
+        <col id="ColCover" />
+        <col id="ColTitle" />
+        <col id="ColCircle" />
+        <col id="ColSeries" />
+        <col id="ColActress" />
+        <col id="ColBtime" />
+        <col id="ColTags" />
+        <col id="ColDuration" />
+        <col id="ColRate" />
+        <col id="ColDescription" />
+        <col id="ColNote" />
+        <col id="ColFileList" />
+      </colgroup>
       <thead>
         <tr>
           <th>カバー</th>
-          <th name="sorter" class="sorter" data-prop="key" data-type="str">作品名</th>
+          <th name="sorter" class="sorter " data-prop="key" data-type="str">作品名</th>
           <th name="sorter" class="sorter" data-prop="circle" data-type="str">サークル</th>
           <th name="sorter" class="sorter" data-prop="series" data-type="str">シリーズ</th>
           <th name="sorter" class="sorter" data-prop="actress" data-type="str[]">出演者</th>
@@ -55,6 +93,7 @@ table img {
           <th name="sorter" class="sorter" data-prop="duration" data-type="num">長さ</th>
           <th name="sorter" class="sorter" data-prop="rate" data-type="num">評価</th>
           <th>概要</th>
+          <th>ノート</th>
           <th class="filelist_col">ファイルリスト</th>
         </tr>
       </thead>

@@ -82,13 +82,20 @@ meta.each do |k, v|
 
   # Audio file list
   flist = Set.new
+  freetalk = false
   Dir.glob("#{v["path"]}/**/*.{mp3,wav,WAV,MP3,m4a,aac,ogg,flac}").each do |filename|
     fn = File.basename(filename ,".*")
-    next if ["SEなし", "SE無し", "seなし", "se無し", "noSE", "nonSE", "OFFSE", "SECut", "SEcut", "NoSFX", "ＳＥなし", "ＳＥ無し", "液体音", "効果音"].any? {|i| fn.include? i } # Include
+    next if ["SEなし", "SE無し", "seなし", "se無し", "noSE", "NOSE", "nonSE", "noneSE", "OFFSE", "SECut", "SEcut", "NoSFX", "ＳＥなし", "ＳＥ無し", "液体音", "効果音", "声なし"].any? {|i| fn.include? i } # Include
     next if [/^反転/, /_反転$/, /_voice$/, /_voice+指$/].any? {|i| i === fn }
     flist << fn
+
+    # Detect Free talk
+    if fn.include?("フリートーク") || fn.include?("PRトーク")
+      freetalk = true
+    end
   end
   v["filelist"] = flist.to_a.sort
+  v["tags"] |= ["フリートーク"] if freetalk
 
   # expand path
   v["path"] = File.absolute_path v["path"]
