@@ -7,7 +7,9 @@ list = Dir.glob("../Voice/_*/_*/*") + Dir.glob("../Voice/_*/[^_]*") + Dir.glob("
 DB = {}
 
 list.each do |i|
-  next unless File.directory? i
+  next if !File.directory?(i)
+  next if File.fnmatch("../Voice/_*/*", i) && FileTest.symlink?(File.dirname i) # Skip circle alias.
+  next if File.fnmatch("../Voice/_*/_*/*", i) && FileTest.symlink?(File.dirname i) # Skip circle alias.
   title = File.basename(i)
   if DB[title]
     abort "title #{title} is already exist."
@@ -19,21 +21,21 @@ end
 meta = (Psych.unsafe_load File.read "meta.yaml") rescue {}
 
 DB.each do |k, v|
-  parts = v.sub(%r!^\.\./Voice/!, "").split("/")
-  circle = nil
-  series = nil
-  if parts.length == 3
-    circle = parts[0][1..]
-    series = parts[1][1..]
-  elsif parts.length == 2
-    circle = parts[0][1..]
-  end
+  # parts = v.sub(%r!^\.\./Voice/!, "").split("/")
+  # circle = nil
+  # series = nil
+  # if parts.length == 3
+    # circle = parts[0][1..]
+    # series = parts[1][1..]
+  # elsif parts.length == 2
+    # circle = parts[0][1..]
+  # end
 
   if meta[k]
     meta[k].merge!({
       "path" => v,
-      "circle" => circle,
-      "series" => series,
+      # "circle" => circle,
+      # "series" => series,
     })
   else
     btime = begin
@@ -44,12 +46,13 @@ DB.each do |k, v|
     meta[k] = {
       "path" => v,
       "btime" => btime,
-      "circle" => circle,
-      "series" => series,
+      # "circle" => circle,
+      # "series" => series,
       "tags" => [],
       "duration" => nil,
       "rate" => nil,
       "description" => "",
+      "note" => [],
     }
   end 
 end

@@ -36,20 +36,20 @@ meta = Psych.unsafe_load File.read "meta.yaml"
 
 meta.each do |k, v|
   ##### Complete Duration
-  unless v["duration"]
-    voice_dirs = Hash.new {|h, k| h[k] = 0}
-    Dir.glob("#{v["path"]}/**/*.wav").each do |i|
-      voice_dirs[File.dirname i] += 1
-    end
-    unless voice_dirs.empty?
-      voice_dir = voice_dirs.max_by {|k, v| v}
-      duration = nil
-      IO.popen(["voice-duration.zsh", *Dir.glob("#{voice_dir[0]}/*.wav")]) do |io|
-        duration = io.read.to_i
-      end
-      v["duration"] = duration
-    end
-  end
+#  unless v["duration"]
+#    voice_dirs = Hash.new {|h, k| h[k] = 0}
+#    Dir.glob("#{v["path"]}/**/*.wav").each do |i|
+#      voice_dirs[File.dirname i] += 1
+#    end
+#    unless voice_dirs.empty?
+#      voice_dir = voice_dirs.max_by {|k, v| v}
+#      duration = nil
+#      IO.popen(["voice-duration.zsh", *Dir.glob("#{voice_dir[0]}/*.wav")]) do |io|
+#        duration = io.read.to_i
+#      end
+#      v["duration"] = duration
+#    end
+#  end
 
   ##### Complete Description
   if !v["description"] or v["description"].empty?
@@ -78,6 +78,18 @@ meta.each do |k, v|
       imgfiles.sort_by! {|i| File::Stat.new(i).size }
       v["imgpath"] = imgfiles[0][v["path"].length .. -1]
     end
+  end
+
+  # Override circle and series by file path.
+  if v["path"] =~ %r:/_([^/]+)/_([^/]+)/:
+    v["circle"] = $1
+    v["series"] = $2
+  elsif v["path"] =~ %r:/_([^/]+)/:
+    v["circle"] = $1
+    v["series"] = nil
+  else
+    v["circle"] = nil
+    v["series"] = nil
   end
 
   # Audio file list
