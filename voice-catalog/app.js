@@ -27,7 +27,7 @@ function initialize_metadata() {
     circles.add(meta[i].circle)
   }
 
-  for (const i of artists) {
+  for (const i of Array.from(artists).sort()) {
     if (i == null) {continue}
     const opt = document.createElement("option")
     const val = document.createTextNode(i)
@@ -35,7 +35,7 @@ function initialize_metadata() {
     opt.appendChild(val)
     aopts.appendChild(opt)
   }
-  for (const i of circles) {
+  for (const i of Array.from(circles).sort()) {
     if (i == null) {continue}
     const opt = document.createElement("option")
     const val = document.createTextNode(i)
@@ -43,7 +43,7 @@ function initialize_metadata() {
     opt.appendChild(val)
     copts.appendChild(opt)
   }
-  for (const i of tags) {
+  for (const i of Array.from(tags).sort()) {
     if (i == null) {continue}
     const opt = document.createElement("option")
     const val = document.createTextNode(i)
@@ -90,16 +90,16 @@ function create_table(cond={}) {
   for (const i of entities) {
     const tr = document.createElement("tr")
     const cover = document.createElement("td")
-    cover.innerHTML = `<img src="${meta[i].path.replace("?", "%3F").replace("#", "%23")}/${meta[i].imgpath || "thumb.jpg"}" />`
+    cover.innerHTML = `<img src="${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}/${meta[i].imgpath || "thumb.jpg"}" />`
     tr.appendChild(cover)
     const title = document.createElement("td")
-    title.innerHTML = `<a href="dlvfol://${meta[i].path.replace("?", "%3F").replace("#", "%23")}">${i}</a>`
+    title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
     tr.appendChild(title)
     const circle = document.createElement("td")
-    circle.innerHTML = meta[i].circle
+    if (meta[i].circle) {circle.innerHTML = meta[i].circle}
     tr.appendChild(circle)
     const series = document.createElement("td")
-    series.innerHTML = meta[i].series
+    if (meta[i].series) {series.innerHTML = meta[i].series}
     tr.appendChild(series)
     const actress = document.createElement("td")
     if (meta[i].actress) {

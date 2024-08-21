@@ -51,6 +51,14 @@ meta.each do |k, v|
 #    end
 #  end
 
+  ##### Complete circle and series
+  if v["path"] =~ %r:_([^/]+)/_([^/]+)/[^/]+$:
+    v["circle"] = $1
+    v["series"] = $2
+  elsif v["path"] =~ %r:_([^/]+)/[^/]+$:
+    v["circle"] = $1
+  end
+
   ##### Complete Description
   if !v["description"] or v["description"].empty?
     txtfiles = Dir.glob("#{v["path"]}/**/*.txt")
@@ -71,6 +79,11 @@ meta.each do |k, v|
     v["actress"].concat artist[:series][v["series"]]
   end
 
+  if !v["actress"] || v["actress"].empty?
+    STDERR.puts "#{k} has no Artist"
+  end
+
+  # Thumbnail
   unless File.exist?("#{v["path"]}/thumb.jpg")
     # Make image path.
     imgfiles = Dir.glob("#{v["path"]}/**/*.{jpg,jpeg,JPG,png,PNG,webp,avif}")
@@ -78,18 +91,6 @@ meta.each do |k, v|
       imgfiles.sort_by! {|i| File::Stat.new(i).size }
       v["imgpath"] = imgfiles[0][v["path"].length .. -1]
     end
-  end
-
-  # Override circle and series by file path.
-  if v["path"] =~ %r:/_([^/]+)/_([^/]+)/:
-    v["circle"] = $1
-    v["series"] = $2
-  elsif v["path"] =~ %r:/_([^/]+)/:
-    v["circle"] = $1
-    v["series"] = nil
-  else
-    v["circle"] = nil
-    v["series"] = nil
   end
 
   # Audio file list

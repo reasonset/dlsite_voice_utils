@@ -1,0 +1,12 @@
+[Nemo Action]
+Active=true
+Name=Voice Cover
+Comment=Collect voice cover image into illustration dir.
+
+Exec=<voicecover.zsh %P>
+
+Icon-Name=feh
+
+Selection=none
+Extensions=any;
+Dependencies=feh;
