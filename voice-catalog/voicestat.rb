@@ -1,5 +1,22 @@
 #!/bin/env ruby
 require 'json'
+require 'optparse'
+
+OPTS = {}
+
+op = OptionParser.new
+op.on("-w VAL", "--works-limit") {|v| v.to_i }
+op.on("-a VAL", "--actress-top") {|v| v.to_i }
+op.on("-c VAL", "--circle-top") {|v| v.to_i }
+op.on("-t VAL", "--tags-limit") {|v| v.to_i }
+op.on("-A VAL", "--actress-mean-top") {|v| v.to_i }
+op.on("-C VAL", "--circle-mean-top") {|v| v.to_i }
+op.on("-T", "--suppress-tags")
+op.on("-F", "--suppress-fivestars")
+op.on("-s", "--show-score-detail")
+op.on("-r VAL", "--recommend-works-limit") {|v| v.to_i}
+
+op.parse!(ARGV, into: OPTS)
 
 META = JSON.load File.read("meta.js").sub("var meta = ", "")
 
@@ -47,55 +64,74 @@ STAT[:circles].each do |k,v|
   circles.push({name: k, number: v})
 end
 circles.sort_by! {|i| -i[:number]}
+if OPTS[:"circle-top"]
+  circles = circles[0, OPTS[:"circle-top"]]
+end
+circles.select! {|i| i[:number] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 actresses = []
 STAT[:actresses].each do |k,v|
   actresses.push({name: k, number: v})
 end
 actresses.sort_by! {|i| -i[:number]}
+if OPTS[:"actress-top"]
+  actresses = actresses[0, OPTS[:"actress-top"]]
+end
+actresses.select! {|i| i[:number] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 tags = []
 STAT[:tags].each do |k,v|
   tags.push({name: k, number: v})
 end
 tags.sort_by! {|i| -i[:number]}
+tags.select! {|i| i[:number] >= OPTS[:"tags-limit"] } if OPTS[:"tags-limit"]
 
 circle_rate = []
 STAT[:circle_rate].each do |k,v|
   circle_rate.push({name: k, number: (v.sum(0.0) / v.length), size: v.length})
 end
 circle_rate.sort_by! {|i| [-i[:number], -i[:size]]}
+circle_rate.select! {|i| i[:number] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 actress_rate = []
 STAT[:actress_rate].each do |k,v|
   actress_rate.push({name: k, number: (v.sum(0.0) / v.length), size: v.length})
 end
 actress_rate.sort_by! {|i| [-i[:number], -i[:size]]}
+actress_rate.select! {|i| i[:number] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 top_circles = []
 STAT[:top_circle].each do |k,v|
   top_circles.push({
     name: k,
     top: v,
-    total: STAT[:circles][k]
+    total: STAT[:circle_rate][k].length
   })
 end
 top_circles.sort_by! {|i| [-i[:top], -(i[:top] / i[:total].to_f)]}
+if OPTS[:"circle-mean-top"]
+  top_circles = top_circles[0, OPTS[:"circle-mean-top"]]
+end
+top_circles.select! {|i| i[:total] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 top_actress = []
 STAT[:top_actress].each do |k,v|
   top_actress.push({
     name: k,
     top: v,
-    total: STAT[:actresses][k]
+    total: STAT[:actress_rate][k].length
   })
 end
 top_actress.sort_by! {|i| [-i[:top], -(i[:top] / i[:total].to_f)]}
+if OPTS[:"actress-mean-top"]
+  top_actress = top_actress[0, OPTS[:"actress-mean-top"]]
+end
+top_actress.select! {|i| i[:total] >= OPTS[:"works-limit"]} if OPTS[:"works-limit"]
 
 
 puts "========== TOP CAST =========="
 actresses.each do |i|
-  printf("%s: %d\n", i[:name], i[:number])
+  printf("%s: %d [%d]\n", i[:name], i[:number], (STAT[:actress_rate][i[:name]].length || 0))
 end
 
 puts
@@ -107,12 +143,14 @@ end
 
 puts
 
-puts "========== TOP TAG =========="
-tags.each do |i|
-  printf("%s: %d\n", i[:name], i[:number])
-end
+unless OPTS[:"suppress-tags"]
+  puts "========== TOP TAG =========="
+  tags.each do |i|
+    printf("%s: %d\n", i[:name], i[:number])
+  end
 
-puts
+  puts
+end
 
 puts "========== ACTRESS MEAN RATE =========="
 actress_rate.each do |i|
@@ -128,9 +166,11 @@ end
 
 puts
 
-puts "========== 5 Stars Works =========="
-STAT[:top_work].each do |i|
-  printf("\"%s\" (%s) by %s\n", File.basename(i["path"]), i["actress"].join(", "), (i["circle"] || "???"))
+unless OPTS[:"suppress-fivestars"]
+  puts "========== 5 Stars Works =========="
+  STAT[:top_work].each do |i|
+    printf("\"%s\" (%s) by %s\n", File.basename(i["path"]), i["actress"].join(", "), (i["circle"] || "???"))
+  end
 end
 
 puts
@@ -160,25 +200,25 @@ printf("Unrated works: %d (%d%% rated)\n", (META.length - STAT[:mean_rate].lengt
 
 puts
 
-puts "..........Experimental AI.........."
+puts "..........Experimental.........."
 
 calc_favorite_actress = []
 dist_rate = Hash.new(0)
 dist_rate_vs = STAT[:actress_rate].values.flatten
 dist_rate_vs.each {|i| dist_rate[i] += 1}
 sc_base = {
-  1 => 0.5,
-  2 => 0.8,
+  1 => 0.75,
+  2 => 0.9,
   3 => 1.0,
-  4 => 1.5,
-  5 => 2.0,
+  4 => 1.08,
+  5 => 1.45,
 }
 sc_deviation = {
-  1 => -0.28,
-  2 => -0.22,
+  1 => -0.14,
+  2 => -0.11,
   3 => -0.05,
-  4 => 0.15,
-  5 => 1.4,
+  4 => 0.04,
+  5 => 0.21,
 }
 sc = {}
 dist_rate.each do |k,v|
@@ -187,7 +227,7 @@ dist_rate.each do |k,v|
 end
 
 STAT[:actress_rate].each do |k, v|
-  next if v.length <= 3
+  next if v.length < (OPTS[:"recommend-works-limit"] || 4)
   # Base score
   score = v.length + v.length * (v.length.to_f / STAT[:mean_rate].length * 10)
 
@@ -254,15 +294,15 @@ sc_base = {
   1 => 0.2,
   2 => 0.6,
   3 => 1.0,
-  4 => 1.2,
-  5 => 1.8,
+  4 => 1.1,
+  5 => 1.25,
 }
 sc_deviation = {
   1 => -0.12,
   2 => -0.31,
   3 => -0.12,
-  4 => 0.15,
-  5 => 0.6,
+  4 => 0.2,
+  5 => 0.44,
 }
 sc = {}
 dist_rate.each do |k,v|
@@ -271,9 +311,9 @@ dist_rate.each do |k,v|
 end
 
 STAT[:circle_rate].each do |k, v|
-  next if v.length <= 3
+  next if v.length < (OPTS[:"recommend-works-limit"] || 4)
   # Base score
-  score = v.length * 50
+  score = v.length * 5
 
   wt = Hash.new(1)
 
@@ -326,5 +366,8 @@ calc_favorite_circle[0, 10].each do |i|
   puts i[:name]
 end
 
-pp calc_favorite_actress
-pp calc_favorite_circle
+if OPTS[:"show-score-detail"]
+  puts
+  pp calc_favorite_actress
+  pp calc_favorite_circle
+end

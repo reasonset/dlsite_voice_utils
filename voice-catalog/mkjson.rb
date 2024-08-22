@@ -11,11 +11,18 @@ artist = {
 }
 
 artists = Dir.glob("../_VoiceByActress/*")
+artists_sound_map = {}
+circle_sound_map = {}
 
 artists.each do |one|
   next unless File.directory? one
   next if File.symlink? one
-  name = File.basename one
+  if File.basename(one) =~ /\[(.*?)\]_(.*)/
+    artists_sound_map[$2] = $1
+    name = $2
+  else 
+    name = File.basename one
+  end
   titles = Dir.children one
   titles.each do |title|
     if title =~ /^__/
@@ -53,10 +60,21 @@ meta.each do |k, v|
 
   ##### Complete circle and series
   if v["path"] =~ %r:_([^/]+)/_([^/]+)/[^/]+$:
-    v["circle"] = $1
-    v["series"] = $2
+    circle = $1
+    series = $2
+    if circle =~ /\[(.*?)\]_(.*)/
+      circle_sound_map[$2] = $1
+      circle = $2
+    end
+    v["circle"] = circle
+    v["series"] = series
   elsif v["path"] =~ %r:_([^/]+)/[^/]+$:
-    v["circle"] = $1
+    circle = $1
+    if circle =~ /\[(.*?)\]_(.*)/
+      circle_sound_map[$2] = $1
+      circle = $2
+    end
+    v["circle"] = circle
   end
 
   ##### Complete Description
@@ -117,4 +135,12 @@ end
 File.open("meta.js", "w") do |f|
   json = JSON.dump meta
   f.puts("var meta = ", json)
+end
+
+File.open("soundindex.js", "w") do |f|
+  json = JSON.dump({
+    "actress" => artists_sound_map,
+    "circle" => circle_sound_map
+  })
+  f.puts("var soundindex = ", json)
 end

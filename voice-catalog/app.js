@@ -27,7 +27,7 @@ function initialize_metadata() {
     circles.add(meta[i].circle)
   }
 
-  for (const i of Array.from(artists).sort()) {
+  for (const i of Array.from(artists).sort((a,b) => (soundindex.actress[a] || a).localeCompare(soundindex.actress[b] || b))) {
     if (i == null) {continue}
     const opt = document.createElement("option")
     const val = document.createTextNode(i)
@@ -35,7 +35,7 @@ function initialize_metadata() {
     opt.appendChild(val)
     aopts.appendChild(opt)
   }
-  for (const i of Array.from(circles).sort()) {
+  for (const i of Array.from(circles).sort((a,b) => (soundindex.circle[a] || a || "").localeCompare(soundindex.circle[b] || b || ""))) {
     if (i == null) {continue}
     const opt = document.createElement("option")
     const val = document.createTextNode(i)
