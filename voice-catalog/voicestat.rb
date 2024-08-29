@@ -229,7 +229,7 @@ end
 STAT[:actress_rate].each do |k, v|
   next if v.length < (OPTS[:"recommend-works-limit"] || 4)
   # Base score
-  score = v.length + v.length * (v.length.to_f / STAT[:mean_rate].length * 10)
+  score = v.length + v.length * ((v.sum(0.0) / v.length) / (STAT[:mean_rate].sum(0.0) / STAT[:mean_rate].length))
 
   wt = Hash.new(1)
 
@@ -277,7 +277,7 @@ STAT[:actress_rate].each do |k, v|
 
   score *= (v.sum(0.0) / v.length / 5)
 
-  calc_favorite_actress.push({name: k, score: score, length: v.length})
+  calc_favorite_actress.push({name: k, score: score, length: v.length, mean: (STAT[:actress_rate][k].sum(0.0) / STAT[:actress_rate][k].length)})
 end
 calc_favorite_actress.sort_by! {|i| -i[:score]}
 
@@ -313,7 +313,7 @@ end
 STAT[:circle_rate].each do |k, v|
   next if v.length < (OPTS[:"recommend-works-limit"] || 4)
   # Base score
-  score = v.length * 5
+  score = v.length
 
   wt = Hash.new(1)
 
