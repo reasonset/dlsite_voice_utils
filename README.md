@@ -34,6 +34,7 @@ The files handled by DLsite voice utils are as follows
 |meta.js|Information on works to be loaded by app.js.|
 |meta.yaml|The piece information that the user edits to configure meta.js.|
 |soundindex.js|Hints to be used for sorting items.|
+|config.js|Configuration file for use with [LWMP](https://github.com/reasonset/localwebmediaplayer).|
 
 In order to use DLsite voice utils, you must have the specified library folder and place the files as specified.
 It will generate a collection based on the placed files.
@@ -151,4 +152,9 @@ Enjoy!
     * Array of note string
     * This item is used for display purposes only
 
+# Use with LWMP
+
+1. Set `voice_library_dir` in `config.js` to absolute path to `_Voice` folder.
+2. Set `lwmp_server` in `config.js` to HTTP address to LWMP.
+3. Publish `_VoiceLibrary` with web server you like.
 

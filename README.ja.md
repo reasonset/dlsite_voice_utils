@@ -34,6 +34,7 @@ DLsite voice utilsは以下のファイルを扱う:
 |meta.js|app.jsが扱う作品のメタデータ|
 |meta.yaml|meta.jsの生成に使われる、ユーザーが編集する作品のメタデータ|
 |soundindex.js|名称のよみがな情報ファイル|
+|config.js|[LWMP](https://github.com/reasonset/localwebmediaplayer)とともに使うための設定ファイル|
 
 DLsite voice utilsを使うには、各ファイルを決められたように配置する必要があり、このファイル配置をもとにコレクションが生成される。
 
@@ -156,6 +157,12 @@ xdg-mime default dlsite_voice_folder.desktop x-scheme-handler/dlvfol
 * `note[]`
     * メモの文字列配列
     * この項目はアプリケーションでの表示上でのみ使用される
+
+# LWMPと組み合わせる
+
+1. `config.js`に記載されている`voice_library_dir`を`_Voice`の絶対パスに設定する
+2. `lwmp_server`をLWMPで配信しているアドレスに変更する
+3. `_VoiceLibrary` ディレクトリを任意のwebサーバーで配信する
 
 # 日本語の詳しい説明
 

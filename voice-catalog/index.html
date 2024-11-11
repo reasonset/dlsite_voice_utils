@@ -1,5 +1,7 @@
 <html>
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>音声作品検索</title>
     <style>
 .sorter {
@@ -41,6 +43,21 @@ tr:hover {
   max-width: 24em;
   width: 24em;
 }
+
+@media (max-width: 600px) {
+  body, #MainTable, #SearchForm {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .mobileinvisible {
+    visibility: collapse;
+  }
+
+  #MainTable {
+    font-size: 90%;
+  }
+}
     </style>
   </head>
   <body>
@@ -71,30 +88,30 @@ tr:hover {
     </fieldset>
     <table border="1" id="MainTable" class="hide_filelist">
       <colgroup>
-        <col id="ColCover" />
-        <col id="ColTitle" />
-        <col id="ColCircle" />
-        <col id="ColSeries" />
-        <col id="ColActress" />
-        <col id="ColBtime" />
-        <col id="ColTags" />
-        <col id="ColDuration" />
-        <col id="ColRate" />
-        <col id="ColDescription" />
-        <col id="ColNote" />
-        <col id="ColFileList" />
+        <col id="ColCover" class="mobilevisible" />
+        <col id="ColTitle" class="mobilevisible" />
+        <col id="ColCircle" class="mobileinvisible" />
+        <col id="ColSeries" class="mobileinvisible" />
+        <col id="ColActress" class="mobilevisible" />
+        <col id="ColBtime" class="mobileinvisible" />
+        <col id="ColTags" class="mobileinvisible" />
+        <col id="ColDuration" class="mobileinvisible" />
+        <col id="ColRate" class="mobileinvisible" />
+        <col id="ColDescription" class="mobileinvisible" />
+        <col id="ColNote" class="mobileinvisible" />
+        <col id="ColFileList" class="mobileinvisible" />
       </colgroup>
       <thead>
         <tr>
           <th>カバー</th>
-          <th name="sorter" class="sorter " data-prop="key" data-type="str">作品名</th>
-          <th name="sorter" class="sorter" data-prop="circle" data-type="str">サークル</th>
-          <th name="sorter" class="sorter" data-prop="series" data-type="str">シリーズ</th>
-          <th name="sorter" class="sorter" data-prop="actress" data-type="str[]">出演者</th>
-          <th name="sorter" class="sorter" data-prop="btime" data-type="dstr">btime</th>
-          <th>タグ</th>
-          <th name="sorter" class="sorter" data-prop="duration" data-type="num">長さ</th>
-          <th name="sorter" class="sorter" data-prop="rate" data-type="num">評価</th>
+          <th name="sorter" class="sorter " data-prop="key" data-type="str" scope="col">作品名</th>
+          <th name="sorter" class="sorter" data-prop="circle" data-type="str" scope="col">サークル</th>
+          <th name="sorter" class="sorter" data-prop="series" data-type="str" scope="col">シリーズ</th>
+          <th name="sorter" class="sorter" data-prop="actress" data-type="str[]" scope="col">出演者</th>
+          <th name="sorter" class="sorter" data-prop="btime" data-type="dstr" scope="col">btime</th>
+          <th scope="col">タグ</th>
+          <th name="sorter" class="sorter" data-prop="duration" data-type="num" scope="col">長さ</th>
+          <th name="sorter" class="sorter" data-prop="rate" data-type="num" scope="col">評価</th>
           <th>概要</th>
           <th>ノート</th>
           <th class="filelist_col">ファイルリスト</th>
@@ -104,6 +121,7 @@ tr:hover {
       </tbody>
     </table>
   </body>
+  <script src="./config.js"></script>
   <script src="./meta.js"></script>
   <script src="./soundindex.js"></script>
   <script src="./app.js"></script>

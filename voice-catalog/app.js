@@ -90,10 +90,37 @@ function create_table(cond={}) {
   for (const i of entities) {
     const tr = document.createElement("tr")
     const cover = document.createElement("td")
-    cover.innerHTML = `<img src="${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}/${meta[i].imgpath || "thumb.jpg"}" />`
+    const cover_img = document.createElement("img")
+    let cover_src
+    if (voice_library_dir && lwmp_server) {
+      cover_src = meta[i].path.substring(voice_library_dir.length)
+      if (cover_src[0] == "/") {
+        cover_src = title_path.substring(1)
+      }
+      cover_src = [lwmp_server.replace(/\/$/, ""), "media", cover_src, (meta[i].imgpath || "thumb.jpg")].join("/")
+    } else {
+      cover_src = [meta[i].path, (meta[i].imgpath || "thumb.jpg")].join('/')
+    }
+    cover_img.src = cover_src
+    cover.appendChild(cover_img)
     tr.appendChild(cover)
     const title = document.createElement("td")
-    title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
+    const title_a = document.createElement("a")
+    let title_path
+    if (voice_library_dir && lwmp_server) {
+      title_path = meta[i].path.substring(voice_library_dir.length)
+      if (title_path[0] == "/") {
+        title_path = title_path.substring(1)
+      }
+      title_path = [lwmp_server.replace(/\/$/, ""), title_path].join("/?")
+    } else {
+      title_path = "dlvfol://" + meta[i].path
+    }
+    const title_text = document.createTextNode(i)
+    title_a.appendChild(title_text)
+    title_a.href = title_path
+    title.appendChild(title_a)
+    // title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
     tr.appendChild(title)
     const circle = document.createElement("td")
     if (meta[i].circle) {circle.innerHTML = meta[i].circle}
