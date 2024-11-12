@@ -1,8 +1,9 @@
 #!/bin/env ruby
 require 'json'
+require 'optparse'
 
 module BasicDB
-  MEAN_MINIMUM = 4
+  MEAN_MINIMUM = 3
   MEAN_ZONE = 0.5
 
   def parse(meta)
@@ -51,15 +52,15 @@ module BasicDB
     @tags_mean = {}
 
     @cast_scorelist.each do |k,v|
-      next if v.length < MEAN_MINIMUM
+      next if v.length < @opts[:mean_minimum]
       @cast_mean[k] = @cast_scorelist[k].sum(0.0) / @cast_scorelist[k].length
     end
     @circle_scorelist.each do |k,v|
-      next if v.length < MEAN_MINIMUM
+      next if v.length < @opts[:mean_minimum]
       @circle_mean[k] = @circle_scorelist[k].sum(0.0) / @circle_scorelist[k].length
     end
     @tags_scorelist.each do |k,v|
-      next if v.length < MEAN_MINIMUM
+      next if v.length < @opts[:mean_minimum]
       next if v == "フリートーク"
       @tags_mean[k] = @tags_scorelist[k].sum(0.0) / @tags_scorelist[k].length
     end
@@ -112,7 +113,7 @@ module BasicDB
   def print
     pp @cast_db
     pp @circle_db
-    pp @tags
+    pp @tags_db
     pp @cast_scorelist
     pp @circle_scorelist
     pp @cast_mean
@@ -138,6 +139,8 @@ module MaybeYouLike
 end
 
 module Trending
+  include BasicDB
+
   CURRENT_THRESHOLD = 1.2
   RECENT_RATE = 0.15
   TAGS_SCORE_RATE = {
@@ -148,6 +151,13 @@ module Trending
     single_recent: 1.1,
     double_recent: 1.15,
     multiple_recent: 1.35,
+    bad_last_work: 0.5
+  }
+  BASIC_IMPRESSION_WEIGHT = {
+    perfect_combo: 0.1,
+    good_chain: 0.05,
+    bad_chain: -0.15,
+    worst_score: -0.05
   }
 
   def trending_main
@@ -163,21 +173,28 @@ module Trending
     @cast_influenced = influenced @cast_db, @circle_mean, "circle"
     @circle_influenced = influenced @circle_db, @cast_mean, "actress"
 
+    @cast_correction = trending_basic_impression @cast_scorelist, @cast_influenced
+    @circle_correction = trending_basic_impression @circle_scorelist, @circle_influenced
+
+    # pp @cast_correction
+    # pp @circle_correction
+
     # 「平均スコア」ではなく「直近作品の平均スコア」を基準値に使う
     @cast_recent_mean = {}
     @cast_scorelist.each do |k,v|
-      next if v.length < BasicDB::MEAN_MINIMUM
-      @cast_recent_mean[k] = v.last(BasicDB::MEAN_MINIMUM * 2).sum(0.0) / v.last(BasicDB::MEAN_MINIMUM * 2).length
+      next if v.length < @opts[:mean_minimum]
+      @cast_recent_mean[k] = v.last(@opts[:mean_minimum] * 2).sum(0.0) / v.last(@opts[:mean_minimum] * 2).length
     end
     @circle_recent_mean = {}
     @circle_scorelist.each do |k,v|
-      next if v.length < BasicDB::MEAN_MINIMUM
-      @circle_recent_mean[k] = v.last(BasicDB::MEAN_MINIMUM * 2).sum(0.0) / v.last(BasicDB::MEAN_MINIMUM * 2).length
+      next if v.length < @opts[:mean_minimum]
+      @circle_recent_mean[k] = v.last(@opts[:mean_minimum] * 2).sum(0.0) / v.last(@opts[:mean_minimum] * 2).length
     end
 
-    @cast_trending = calc_trending @cast_recent_mean, @cast_influenced, @cast_tags
-    @circle_trending = calc_trending @circle_recent_mean, @circle_influenced, @circle_tags
+    @cast_trending = calc_trending @cast_recent_mean, @cast_tags, @cast_correction
+    @circle_trending = calc_trending @circle_recent_mean, @circle_tags, @circle_correction
 
+    # pp @cast_recent_mean
     # pp @cast_trending
     # pp @circle_trending
 
@@ -188,7 +205,7 @@ module Trending
     tags = Hash.new {|h,k| h[k] = []}
 
     ratelist.each do |k,v|
-      next if v.length < BasicDB::MEAN_MINIMUM
+      next if v.length < @opts[:mean_minimum]
       last_rate = nil
       v.each do |r|
         if last_rate && last_rate >= r + 2
@@ -224,11 +241,16 @@ module Trending
       elsif recent_items.length > 2
         tags[k].push :multiple_recent
       end
+
+      if v.last <= 2
+        tags[k].push :bad_last_work
+      end
     end
 
     tags
   end
 
+  # 極端な偏差値のものについては影響を低減する補正係数を与える
   def influenced works, mean, meankey
     meanlist = Hash.new {|h,k| h[k] = []}
     works.each do |k,v|
@@ -236,7 +258,7 @@ module Trending
         mkv = wv[meankey]
         Array === mkv ? mkv.map {|mkvi| mean[mkvi]} : mean[mkv]
       }.flatten.compact
-      next if rate.length < BasicDB::MEAN_MINIMUM
+      next if rate.length < @opts[:mean_minimum]
       meanlist[k] = rate.sum(0.0) / rate.length
     end
 
@@ -256,11 +278,33 @@ module Trending
     influenced_rate
   end
 
-  def calc_trending mean, influenced_rate, tags
+  # 項目に対する全体的な印象から直近の平均に対しても補正を加える
+  def trending_basic_impression list, influenced_rate
+    weight = Hash.new(0)
+
+    list.each do |k, v|
+      next if v.length < @opts[:mean_minimum]
+      v.each_cons(3) do |con|
+        weight[k] += BASIC_IMPRESSION_WEIGHT[:perfect_combo] if con[0,2].sum == 10
+        weight[k] += BASIC_IMPRESSION_WEIGHT[:good_chain] if con.sum >= 13
+        weight[k] += BASIC_IMPRESSION_WEIGHT[:bad_chain] if con.sum <= 6
+        weight[k] += BASIC_IMPRESSION_WEIGHT[:worst_score] if con.last < 2
+      end
+    end
+
+    weight.each do |k,v|
+      if influenced_rate[k]
+        weight[k] *= influenced_rate[k]
+      end
+    end
+
+    weight
+  end
+
+  def calc_trending mean, tags, correction
     val = {}
     mean.each do |main_k, main_v|
-      in_influenced = influenced_rate[main_k] || 1.0
-      score = main_v
+      score = main_v + (correction[main_k] || 0)
       if tags.include? :descending
         val[main_k] = score * TAGS_SCORE_RATE[:descending]
         next
@@ -268,15 +312,7 @@ module Trending
 
       tags[main_k].each do |tags_v|
         r = TAGS_SCORE_RATE[tags_v]
-        if r
-          if in_influenced
-            ra = (1 - r).abs
-            inf_ra = ra * in_influenced
-            unless ra.zero?
-              score *= r < 1 ? 1 - inf_ra : 1 + inf_ra
-            end
-          end
-        end
+        score *= (r || 1)
       end
 
       val[main_k] = score
@@ -306,8 +342,12 @@ class VoiceStat
   include MaybeYouLike
   include Trending
 
-  def initialize(meta)
-    parse(meta)
+  def initialize(meta=nil)
+    @opts = {
+      mean_minimum: BasicDB::MEAN_MINIMUM,
+      mean_zone: BasicDB::MEAN_ZONE
+    }
+    parse(meta) if meta
   end
 
   def run
@@ -317,6 +357,7 @@ end
 
 meta = JSON.load File.read("meta.js").sub("var meta = ", "")
 
-vs = VoiceStat.new meta
+vs = VoiceStat.new
+vs.parse meta
 # vs.print
 vs.run
