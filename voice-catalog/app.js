@@ -51,6 +51,7 @@ function initialize_metadata() {
     opt.appendChild(val)
     topts.appendChild(opt)
   }
+
 }
 
 function create_table(cond={}) {
@@ -101,7 +102,7 @@ function create_table(cond={}) {
     } else {
       cover_src = [meta[i].path, (meta[i].imgpath || "thumb.jpg")].join('/')
     }
-    cover_img.src = cover_src
+    cover_img.src = cover_src.replace(/\?/g, "%3F").replace(/#/g, "%23")
     cover.appendChild(cover_img)
     tr.appendChild(cover)
     const title = document.createElement("td")
@@ -118,7 +119,7 @@ function create_table(cond={}) {
     }
     const title_text = document.createTextNode(i)
     title_a.appendChild(title_text)
-    title_a.href = title_path
+    title_a.href = title_path.replace(/\?/g, "%3F").replace(/#/g, "%23")
     title.appendChild(title_a)
     // title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
     tr.appendChild(title)
