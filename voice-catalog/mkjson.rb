@@ -10,7 +10,7 @@ artist = {
   series: Hash.new {|h, k| h[k] = []},
 }
 
-artists = Dir.glob("../_VoiceByActress/*")
+artists = Dir.glob("../_VoiceByCast/*")
 artists_sound_map = {}
 circle_sound_map = {}
 

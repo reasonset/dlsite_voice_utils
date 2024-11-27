@@ -29,7 +29,7 @@ diff.each do |k, v|
 end
 
 # Update actress
-Dir.glob("../_VoiceByActress/*/*").each do |i|
+Dir.glob("../_VoiceByCast/*/*").each do |i|
   #p File.basename(i)[0, 2]
   if File.basename(i)[0, 2] == "__"
     # Series

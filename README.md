@@ -59,7 +59,7 @@ Symbolic links are allowed for `work` or `Voice` directory.
 `work` must be the name of the work and must be unique.
 DLsite voice utils uses the work name as key, so duplicate filenames in the `work` directory, even if they exist in different directories, will cause problems.
 
-Place the cast directory on `../_VoiceByActress`.
+Place the cast directory on `../_VoiceByCast`.
 The name of the cast directory is the cast name, and the cast directory contains a symbolic link to the work.
 
 If the cast appears in all the works in the series, the file name of the symbolic link should start with `__` and be a symbolic link to the series.
@@ -91,7 +91,7 @@ Voice/
   work-C
   _[circled]_サークルD/
     work-D/
-_VoiceByActress/
+_VoiceByCast/
   [HinataYuka]_陽向葵ゅか/
     _circle-A -> ../../Voice/_[circlea]_サークルA
     __series-B -> ../../Voice/_[circleb]_サークルB/_series_B

@@ -342,12 +342,11 @@ class VoiceStat
   include MaybeYouLike
   include Trending
 
-  def initialize(meta=nil)
+  def initialize()
     @opts = {
       mean_minimum: BasicDB::MEAN_MINIMUM,
       mean_zone: BasicDB::MEAN_ZONE
     }
-    parse(meta) if meta
   end
 
   def run

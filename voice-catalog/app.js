@@ -113,13 +113,17 @@ function create_table(cond={}) {
       if (title_path[0] == "/") {
         title_path = title_path.substring(1)
       }
-      title_path = [lwmp_server.replace(/\/$/, ""), title_path].join("/?")
+      title_path = [lwmp_server.replace(/\/$/, ""), title_path.replace(/\?/g, "%3F").replace(/#/g, "%23")].join("/?")
     } else {
-      title_path = "dlvfol://" + meta[i].path
+      if (use_dlvfol) {
+        title_path = "dlvfol://" + meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
+      } else {
+        title_path = "file://" + meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
+      }
     }
     const title_text = document.createTextNode(i)
     title_a.appendChild(title_text)
-    title_a.href = title_path.replace(/\?/g, "%3F").replace(/#/g, "%23")
+    title_a.href = title_path
     title.appendChild(title_a)
     // title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
     tr.appendChild(title)
