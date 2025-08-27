@@ -15,16 +15,19 @@ var sort_status = {
   default: "1970-01-01"
 }
 
+const titles = meta.titles
+const soundindex = meta.soundindex
+
 function initialize_metadata() {
-  for (const i in meta) {
-    const actresses = meta[i].actress
+  for (const i in titles) {
+    const actresses = titles[i].actress
     for (const j of actresses) {
       artists.add(j)
     }
-    for (const j of meta[i].tags) {
+    for (const j of titles[i].tags) {
       tags.add(j)
     }
-    circles.add(meta[i].circle)
+    circles.add(titles[i].circle)
   }
 
   for (const i of Array.from(artists).sort((a,b) => (soundindex.actress[a] || a).localeCompare(soundindex.actress[b] || b))) {
@@ -58,12 +61,12 @@ function create_table(cond={}) {
   const list_body = document.getElementById("ListBody")
   const tbody = document.createElement("tbody")
   let entities = []
-  for (const i in meta) {
-    if (cond.tag && !meta[i].tags?.includes(cond.tag)) { ;continue }
-    if (cond.actress && !meta[i].actress?.includes(cond.actress)) { continue }
-    if (cond.circle && !meta[i].circle?.includes(cond.circle)) { continue }
-    if (cond.rate && (meta[i].rate || 0) < cond.rate ) { continue }
-    if (cond.keyword && !i.includes(cond.keyword) && !meta[i].description?.includes(cond.keyword)) { continue }
+  for (const i in titles) {
+    if (cond.tag && !titles[i].tags?.includes(cond.tag)) { ;continue }
+    if (cond.actress && !titles[i].actress?.includes(cond.actress)) { continue }
+    if (cond.circle && !titles[i].circle?.includes(cond.circle)) { continue }
+    if (cond.rate && (titles[i].rate || 0) < cond.rate ) { continue }
+    if (cond.keyword && !i.includes(cond.keyword) && !titles[i].description?.includes(cond.keyword)) { continue }
     entities.push(i)
   }
 
@@ -72,8 +75,8 @@ function create_table(cond={}) {
   switch (sort_status.type) {
     case "str[]":
       entities = entities.sort((a,b) => {
-        const va = meta[a][sort_status.by]?.join(" ") || sort_status.default
-        const vb = meta[b][sort_status.by]?.join(" ") || sort_status.default
+        const va = titles[a][sort_status.by]?.join(" ") || sort_status.default
+        const vb = titles[b][sort_status.by]?.join(" ") || sort_status.default
         if (va < vb) { return -1 * desc_adjust }
         else if (va > vb) { return 1 * desc_adjust }
         else { return 0 }
@@ -81,8 +84,8 @@ function create_table(cond={}) {
       break
     default:
       entities = entities.sort((a,b) => {
-        const va = sort_status.by === "key" ? a : (meta[a][sort_status.by] || sort_status.default)
-        const vb = sort_status.by === "key" ? b: (meta[b][sort_status.by] || sort_status.default)
+        const va = sort_status.by === "key" ? a : (titles[a][sort_status.by] || sort_status.default)
+        const vb = sort_status.by === "key" ? b: (titles[b][sort_status.by] || sort_status.default)
         if (va < vb) { return -1 * desc_adjust }
         else if (va > vb) { return 1 * desc_adjust }
         else { return 0 }
@@ -94,13 +97,13 @@ function create_table(cond={}) {
     const cover_img = document.createElement("img")
     let cover_src
     if (voice_library_dir && lwmp_server) {
-      cover_src = meta[i].path.substring(voice_library_dir.length)
+      cover_src = titles[i].path.substring(voice_library_dir.length)
       if (cover_src[0] == "/") {
         cover_src = title_path.substring(1)
       }
-      cover_src = [lwmp_server.replace(/\/$/, ""), "media", cover_src, (meta[i].imgpath || "thumb.jpg")].join("/")
+      cover_src = [lwmp_server.replace(/\/$/, ""), "media", cover_src, (titles[i].imgpath || "thumb.jpg")].join("/")
     } else {
-      cover_src = [meta[i].path, (meta[i].imgpath || "thumb.jpg")].join('/')
+      cover_src = [titles[i].path, (titles[i].imgpath || "thumb.jpg")].join('/')
     }
     cover_img.src = cover_src.replace(/\?/g, "%3F").replace(/#/g, "%23")
     cover.appendChild(cover_img)
@@ -109,35 +112,34 @@ function create_table(cond={}) {
     const title_a = document.createElement("a")
     let title_path
     if (voice_library_dir && lwmp_server) {
-      title_path = meta[i].path.substring(voice_library_dir.length)
+      title_path = titles[i].path.substring(voice_library_dir.length)
       if (title_path[0] == "/") {
         title_path = title_path.substring(1)
       }
       title_path = [lwmp_server.replace(/\/$/, ""), title_path.replace(/\?/g, "%3F").replace(/#/g, "%23")].join("/?")
     } else {
       if (use_dlvfol) {
-        title_path = "dlvfol://" + meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
+        title_path = "dlvfol://" + titles[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
       } else {
-        title_path = "file://" + meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
+        title_path = "file://" + titles[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23")
       }
     }
     const title_text = document.createTextNode(i)
     title_a.appendChild(title_text)
     title_a.href = title_path
     title.appendChild(title_a)
-    // title.innerHTML = `<a href="dlvfol://${meta[i].path.replace(/\?/g, "%3F").replace(/#/g, "%23").replace(/"/g, "%22")}">${i}</a>`
     tr.appendChild(title)
     const circle = document.createElement("td")
-    if (meta[i].circle) {circle.innerHTML = meta[i].circle}
+    if (titles[i].circle) {circle.innerHTML = titles[i].circle}
     tr.appendChild(circle)
     const series = document.createElement("td")
-    if (meta[i].series) {series.innerHTML = meta[i].series}
+    if (titles[i].series) {series.innerHTML = titles[i].series}
     tr.appendChild(series)
     const actress = document.createElement("td")
-    if (meta[i].actress) {
+    if (titles[i].actress) {
       const actress_ul = document.createElement("ul")
       actress_ul.className = "inline_list"
-      for (const j of meta[i].actress) {
+      for (const j of titles[i].actress) {
         const li = document.createElement("li")
         li.className = "inline_list"
         const li_text = document.createTextNode(j)
@@ -148,13 +150,13 @@ function create_table(cond={}) {
     }
     tr.appendChild(actress)
     const date = document.createElement("td")
-    date.innerHTML = meta[i].btime
+    date.innerHTML = titles[i].btime
     tr.appendChild(date)
     const tags = document.createElement("td")
-    if (meta[i].tags) {
+    if (titles[i].tags) {
       const tags_ul = document.createElement("ul")
       tags_ul.className = "inline_list"
-      for (const j of meta[i].tags) {
+      for (const j of titles[i].tags) {
         const li = document.createElement("li")
         li.className = "inline_list"
         const li_text = document.createTextNode(j)
@@ -165,24 +167,24 @@ function create_table(cond={}) {
     }
     tr.appendChild(tags)
     const duration = document.createElement("td")
-    duration.innerHTML = meta[i].duration || ""
+    duration.innerHTML = titles[i].duration || ""
     tr.appendChild(duration)
     const rate = document.createElement("td")
-    if (!meta[i].rate) { meta[i].rate = 0 }
-    rate.innerHTML = ("★".repeat(meta[i].rate) + "☆".repeat(5 - meta[i].rate))
+    if (!titles[i].rate) { titles[i].rate = 0 }
+    rate.innerHTML = ("★".repeat(titles[i].rate) + "☆".repeat(5 - titles[i].rate))
     tr.appendChild(rate)
     const description = document.createElement("td")
-    if (meta[i].description) {
+    if (titles[i].description) {
       const description_body = document.createElement("span")
-      description_body.title = meta[i].description
+      description_body.title = titles[i].description
       description_body.appendChild(document.createTextNode("🗒"))
       description.appendChild(description_body)
     }
     tr.appendChild(description)
     const note = document.createElement("td")
-    if (meta[i].note) {
+    if (titles[i].note) {
       const note_ul = document.createElement("ul")
-      for (const j of meta[i].note) {
+      for (const j of titles[i].note) {
         const li = document.createElement("li")
         const li_text = document.createTextNode(j)
         li.appendChild(li_text)
@@ -194,7 +196,7 @@ function create_table(cond={}) {
     const filelist = document.createElement("td")
     filelist.className = "filelist filelist_col"
     const filelist_ul = document.createElement("ul")
-    for (const file of meta[i].filelist) {
+    for (const file of titles[i].filelist) {
       const li = document.createElement("li")
       const li_text = document.createTextNode(file)
       li.appendChild(li_text)

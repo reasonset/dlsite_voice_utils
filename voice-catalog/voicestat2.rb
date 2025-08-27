@@ -336,6 +336,203 @@ module Trending
   end
 end
 
+class RGameStyle
+  # SCORE_DB = {
+  #   0 => {
+  #     drop_combo: 3,
+  #     score: {
+  #       1 => -10,
+  #       2 => -3,
+  #       3 => -1,
+  #       4 => 1,
+  #       5 => 2
+  #     }
+  #   },
+  #   1 => {
+  #     combo: 1,
+  #     drop_combo: 1,
+  #     score: {
+  #       1 => -5,
+  #       2 => -2,
+  #       3 => 0,
+  #       4 => 1,
+  #       5 => 2
+  #     }
+  #   },
+  #   2 => {
+  #     combo: 1,
+  #     score: {
+  #       1 => -3,
+  #       2 => -1,
+  #       3 => 0,
+  #       4 => 1,
+  #       5 => 2
+  #     }
+  #   },
+  #   3 => {
+  #     combo: 3,
+  #     score: {
+  #       1 => -2,
+  #       2 => -1,
+  #       3 => 0,
+  #       4 => 2,
+  #       5 => 3
+  #     }
+  #   },
+  #   4 => {
+  #     combo: 5,
+  #     score: {
+  #       1 => -2,
+  #       2 => -1,
+  #       3 => 0,
+  #       4 => 3,
+  #       5 => 5
+  #     }
+  #   },
+  #   5 => {
+  #     combo: 10,
+  #     score: {
+  #       1 => -1,
+  #       2 => 0,
+  #       3 => 0,
+  #       4 => 5,
+  #       5 => 10
+  #     }
+  #   }
+  # }
+  SCORE_DB = {
+    0 => {
+      drop_combo: 3,
+      score: {
+        1 => -25,
+        2 => -15,
+        3 => -1,
+        4 => 1,
+        5 => 2
+      }
+    },
+    1 => {
+      combo: 1,
+      drop_combo: 1,
+      score: {
+        1 => -15,
+        2 => -10,
+        3 => 0,
+        4 => 1,
+        5 => 3
+      }
+    },
+    2 => {
+      combo: 1,
+      score: {
+        1 => -10,
+        2 => -5,
+        3 => 0,
+        4 => 2,
+        5 => 5
+      }
+    },
+    3 => {
+      combo: 3,
+      score: {
+        1 => -5,
+        2 => -2,
+        3 => 0,
+        4 => 4,
+        5 => 10
+      }
+    },
+    4 => {
+      combo: 5,
+      score: {
+        1 => -2,
+        2 => -1,
+        3 => 0,
+        4 => 6,
+        5 => 15
+      }
+    },
+  }
+  EX_SCORE = {
+    1 => 0,
+    2 => 10,
+    3 => 50,
+    4 => 80,
+    5 => 100
+  }
+
+  def initialize(db)
+    @tension = Hash.new {|h,k| h[k] = {
+      tension: 30,
+      ex: 0,
+      stage: 2,
+      combo: 0,
+      drop_combo: 0
+    }}
+    @db = db
+
+    flat_db = db.map {|k,v| v}.flatten.compact
+    @combo_threshold = (flat_db.sum / flat_db.length.to_f).round
+  end
+
+  def note(key, score)
+    # Add score
+    @tension[key][:tension] += SCORE_DB[@tension[key][:stage]][:score][score]
+    @tension[key][:tension] = 100 if @tension[key][:tension] > 100
+    @tension[key][:tension] = 0 if @tension[key][:tension] < 0
+
+    # Add EX score
+    @tension[key][:ex] += EX_SCORE[score]
+
+    # Combo
+    if score < @combo_threshold
+      @tension[key][:combo] = 0
+      @tension[key][:drop_combo] += 1
+
+      if @tension[key][:stage] > 0
+        if SCORE_DB[0][:drop_combo] < @tension[key][:drop_combo]
+          @tension[key][:stage] = 0
+        else
+          @tension[key][:stage] = 1
+        end
+      end
+    else
+      @tension[key][:combo] += 1
+      @tension[key][:drop_combo] = 0
+      
+      if @tension[key][:combo] > SCORE_DB[@tension[key][:stage] + 1][:combo]
+        @tension[key][:stage] += 1
+      end
+    end
+  end
+
+  def run
+    @db.each do |k,v|
+      v.each do |vv|
+        note k, vv
+      end
+    end
+
+    self
+  end
+
+  def print
+    puts "-*-*- LETS COMBO -*-*-"
+    order = @tension.each_key.sort_by {|k| [@tension[k][:tension], @tension[k][:ex]]}.reverse
+
+    order.first(10).each do |k|
+      printf("%s %d [Ex %d]\n", k, @tension[k][:tension], @tension[k][:ex])
+    end
+    puts
+  end
+
+  def self.run(db, name)
+    puts "-=-=-=- #{name} -=-=-=-"
+    rgs = self.new(db)
+    rgs.run.print
+  end
+end
+
 class VoiceStat
   include BasicDB
   include StandardInfomation
@@ -351,6 +548,8 @@ class VoiceStat
 
   def run
     trending_main
+    RGameStyle.run(@cast_scorelist, "CAST")
+    RGameStyle.run(@circle_scorelist, "CIRCLE")
   end
 end
 

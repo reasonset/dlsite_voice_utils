@@ -3,6 +3,10 @@ require 'json'
 require 'yaml'
 require 'nkf'
 require 'set'
+require 'find'
+
+COVERART_EXTS = %w:.jpg .jpeg .png .webp .avif:
+VOICEFILE_EXTS = %w:.mp3 .wav .WAV .MP3 .m4a .aac .ogg .flac:
 
 artist = {
   title: Hash.new {|h, k| h[k] = []},
@@ -39,9 +43,22 @@ artists.each do |one|
   end
 end
 
-meta = Psych.unsafe_load File.read "meta.yaml"
+meta = {
+  "titles" => (Psych.unsafe_load File.read "meta.yaml")
+}
 
-meta.each do |k, v|
+meta["titles"].each do |k, v|
+  files = {
+    image: [],
+    voice: [],
+    text: []
+  }
+  Find.find(v["path"]) do |fp|
+    ext = File.extname(fp).downcase
+    files[:image].push(fp) if COVERART_EXTS.include? ext
+    files[:voice].push(fp) if VOICEFILE_EXTS.include? ext
+    files[:text].push(fp) if ext == ".txt"
+  end
   ##### Complete Duration
 #  unless v["duration"]
 #    voice_dirs = Hash.new {|h, k| h[k] = 0}
@@ -79,9 +96,9 @@ meta.each do |k, v|
 
   ##### Complete Description
   if !v["description"] or v["description"].empty?
-    txtfiles = Dir.glob("#{v["path"]}/**/*.txt")
-    unless txtfiles.empty?
-      v["description"] = NKF.nkf("-w", File.read(txtfiles.first))
+    Find.find(v["path"])
+    unless files[:text].empty?
+      v["description"] = NKF.nkf("-w", File.read(files[:text].first))
     end
   end
 
@@ -103,19 +120,17 @@ meta.each do |k, v|
 
   # Thumbnail
   unless File.exist?("#{v["path"]}/thumb.jpg")
-    # Make image path.
-    imgfiles = Dir.glob("#{v["path"]}/**/*.{jpg,jpeg,JPG,png,PNG,webp,avif}")
-    unless imgfiles.empty?
-      imgfiles.sort_by! {|i| File::Stat.new(i).size }
-      v["imgpath"] = imgfiles[0][v["path"].length .. -1]
+    unless files[:image].empty?
+      files[:image].sort_by! {|i| File::Stat.new(i).size }
+      v["imgpath"] = files[:image][0][v["path"].length .. -1]
     end
   end
 
   # Audio file list
   flist = Set.new
   freetalk = false
-  Dir.glob("#{v["path"]}/**/*.{mp3,wav,WAV,MP3,m4a,aac,ogg,flac}").each do |filename|
-    fn = File.basename(filename ,".*")
+  files[:voice].each do |fp|
+    fn = File.basename(fp ,".*")
     next if ["SEなし", "SE無し", "seなし", "se無し", "noSE", "NOSE", "nonSE", "noneSE", "OFFSE", "SECut", "SEcut", "NoSFX", "ＳＥなし", "ＳＥ無し", "液体音", "効果音", "声なし"].any? {|i| fn.include? i } # Include
     next if [/^反転/, /_反転$/, /_voice$/, /_voice+指$/].any? {|i| i === fn }
     flist << fn
@@ -132,15 +147,12 @@ meta.each do |k, v|
   v["path"] = File.absolute_path v["path"]
 end
 
+meta["soundindex"] = {
+  "actress" => artists_sound_map,
+  "circle" => circle_sound_map
+}
+
 File.open("meta.js", "w") do |f|
   json = JSON.dump meta
   f.puts("var meta = ", json)
-end
-
-File.open("soundindex.js", "w") do |f|
-  json = JSON.dump({
-    "actress" => artists_sound_map,
-    "circle" => circle_sound_map
-  })
-  f.puts("var soundindex = ", json)
 end
