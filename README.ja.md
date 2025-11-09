@@ -29,23 +29,21 @@ DLsite voice utilsは以下のファイルを扱う:
 
 |File|Description|
 |--------|------------------------------------|
-|index.html|ウェブアプリケーションのコンテナ|
-|app.js|アプリケーション本体|
-|meta.js|app.jsが扱う作品のメタデータ|
-|meta.yaml|meta.jsの生成に使われる、ユーザーが編集する作品のメタデータ|
-|soundindex.js|名称のよみがな情報ファイル|
-|config.js|[LWMP](https://github.com/reasonset/localwebmediaplayer)とともに使うための設定ファイル|
+|`index.html`|ウェブアプリケーションのコンテナ|
+|`index.en.html`|ウェブアプリケーションのコンテナ (英語版)|
+|`app.js`|アプリケーション本体|
+|`meta.js`|app.jsが扱う作品のメタデータ|
+|`.dlvumeta.yaml`|meta.jsの生成に使われる、ユーザーが編集する作品のメタデータ|
+|`config.js`|[LWMP](https://github.com/reasonset/localwebmediaplayer)とともに使うための設定ファイル|
 
 DLsite voice utilsを使うには、各ファイルを決められたように配置する必要があり、このファイル配置をもとにコレクションが生成される。
 
-`mkmeta.rb`はファイル配置をもとに`meta.yaml`を生成する。
-2度目以降は、未知の作品のメタデータを追加する。
+`.dlvumeta.yaml`はユーザーが編集するファイルである。
+`mkmeta.rb`はまだ存在しない作品に対してテンプレートを`.dlvumeta.yaml`として展開する。
+このファイルは空のメタデータテンプレートであり、ユーザーが内容を埋めるべきものである。
 
-`meta.yaml`はユーザーが編集するファイルである。
-`mkmeta.rb`は作品のメタデータを`meta.yaml`に追加する。いくつかのエンティティは自動的に埋められるが、ユーザーは`meta.yaml`を編集する必要がある。
-
-`mkjson.rb`は`meta.yaml`とファイル配置を利用して`meta.js`と`soundindex.js`を生成する。
-`meta.yaml`を編集した場合、`mkjson.rb`を実行してアップデートする。
+`mkjson.rb`は`.dlvumeta.yaml`とファイル配置を利用して`meta.js`を生成する。
+`.dlvumeta.yaml`を編集した場合、`mkjson.rb`を実行してアップデートする。
 
 ## ファイル配置
 
@@ -104,9 +102,9 @@ _VoiceByCast/
 
 ## メタデータの生成と編集
 
-配置が完了したら、`mkmeta.rb`を実行することで`meta.yaml`を生成できる。
+配置が完了したら、`mkmeta.rb`を実行することで各作品ディレクトリに`.dlvumeta.yaml`が生成される。
 
-`meta.yaml`は直接編集することもできるが、Nemoを使っているのなら`95-edit-dlvoice.nemo_action`と`edit-dlvoice.rb`をNemo Actionsにインストールすることで、作品フォルダのコンテキストメニューから作品情報を編集できるようになる。
+`.dlvumeta.yaml`は直接編集することもできるが、Nemoを使っているのなら`95-edit-dlvoice.nemo_action`と`edit-dlvoice.rb`をNemo Actionsにインストールすることで、作品フォルダのコンテキストメニューから作品情報を編集できるようになる。
 
 ## サムネイル
 
@@ -136,13 +134,10 @@ xdg-mime default dlsite_voice_folder.desktop x-scheme-handler/dlvfol
 
 # メタデータの説明
 
-* `path`
-    * 作品ディレクトリへのパス
-    * ライブラリからの相対パス
 * `btime`
     * 作品の購入日
     * `mkmeta.rb`は自動的にbtimeを使ってこの項目を埋める
-    * ファイルシステムがbtimeをサポートしていない場合(e.g. Ext4,)、`mkmeta.rb`はmtimeを使う
+    * ファイルシステムがbtimeをサポートしていない場合、`mkmeta.rb`はmtimeを使う
 * `tags[]`
     * タグの文字列配列
 * `duration`
@@ -163,6 +158,16 @@ xdg-mime default dlsite_voice_folder.desktop x-scheme-handler/dlvfol
 1. `config.js`に記載されている`voice_library_dir`を`_Voice`の絶対パスに設定する
 2. `lwmp_server`をLWMPで配信しているアドレスに変更する
 3. `_VoiceLibrary` ディレクトリを任意のwebサーバーで配信する
+
+# 大きな変更点
+
+## 2025-11-09
+
+従来`mkmeta.rb`はライブラリディレクトリに`meta.yaml`を生成していたが、作品別ディレクトリに`.dlvumeta.yaml`を配置する方式に戻した。
+このため、`mkmeta.rb`, `mkjson.rb`, `edit-dlvoice.rb`は同時に更新される必要がある。
+
+`meta.yaml`から`.dlvumeta.yaml`に変換するには、`utils/split-metayaml.rb`を使用する。
+これはライブラリディレクトリ上で実行する必要がある。
 
 # 日本語の詳しい説明
 

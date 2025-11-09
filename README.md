@@ -29,23 +29,22 @@ The files handled by DLsite voice utils are as follows
 
 |File|Description|
 |--------|------------------------------------|
-|index.html|Container file for loading the application.|
-|app.js|The main body of the application.|
-|meta.js|Information on works to be loaded by app.js.|
-|meta.yaml|The piece information that the user edits to configure meta.js.|
-|soundindex.js|Hints to be used for sorting items.|
-|config.js|Configuration file for use with [LWMP](https://github.com/reasonset/localwebmediaplayer).|
+|`index.html`|Container file for loading the application.|
+|`index.en.html`|Container file for loading the application (English version.)|
+|`app.js`|The main body of the application.|
+|`meta.js`|Information on works to be loaded by app.js.|
+|`meta.yaml`|The piece information that the user edits to configure meta.js.|
+|`config.js`|Configuration file for use with [LWMP](https://github.com/reasonset/localwebmediaplayer).|
 
 In order to use DLsite voice utils, you must have the specified library folder and place the files as specified.
 It will generate a collection based on the placed files.
 
-`mkmeta.rb` generates a `meta.yaml` file based on the placed files. after the second time, it adds the newly added items to it.
+`.dlvumeta.yaml` is a file that users edit.
+`mkmeta.rb` generates a template as `.dlvumeta.yaml` for titles that do not yet exist.
+This file is an empty metadata template that users should fill in.
 
-`meta.yaml` is a user-editable file.
-`mkmeta.rb` generates metadata for the work in `meta.yaml`. Some entries are automatically filled in, but it is the user who should fill in the metadata in `meta.yaml`.
-
-`mkjson.rb` generates `meta.js` and `soundindex.js` based on the file hierarchy and the contents of `meta.yaml`.
-You runs `mkjson.rb` when `meta.yaml` is updated.
+`mkjson.rb` generates `meta.js` using `.dlvumeta.yaml` and file placement.
+If you edit `.dlvumeta.yaml`, run `mkjson.rb` to update it.
 
 ## Library file hierarchy
 
@@ -101,9 +100,9 @@ _VoiceByCast/
 
 ## Create and edit meta file
 
-Once file placement is complete, unknown works can be added to `meta.yaml` by running `mkmeta.rb`.
+Once the configuration is complete, running `mkmeta.rb` will generate a `.dlvumeta.yaml` file in each title directory.
 
-You can edit the `meta.yaml` directly, but if you are using Nemo, install `95-edit-dlvoice.nemo_action` and `edit-dlvoice.rb` as Nemo Actions so that you can edit the metadata of the relevant You can edit the metadata of the work from the context menu on the work directory.
+You can edit the `.dlvumeta.yaml` directly, but if you are using Nemo, install `95-edit-dlvoice.nemo_action` and `edit-dlvoice.rb` as Nemo Actions so that you can edit the metadata of the relevant You can edit the metadata of the work from the context menu on the work directory.
 
 ## Thumbnail
 
@@ -127,16 +126,14 @@ You perform this step only once.
 
 ## Open index.html
 
-Enjoy!
+Do Enjoy!
 
 # Explain metadata
 
-* `path`
-    * work directory relative path from library directory
 * `btime`
     * Date of you brought
     * `mkmeta.rb` fills btime automatically with btime
-    * If filesystem does not support btime (e.g. Ext4,) `mkmeta.rb` uses mtime.
+    * If filesystem does not support btime, `mkmeta.rb` uses mtime.
 * `tags[]`
     * Array of tag string
 * `duration`
@@ -158,3 +155,12 @@ Enjoy!
 2. Set `lwmp_server` in `config.js` to HTTP address to LWMP.
 3. Publish `_VoiceLibrary` with web server you like.
 
+# Imcompatible changes
+
+## 2025-11-09
+
+Previously, `mkmeta.rb` generated `meta.yaml` in the library directory, but we have reverted to placing `.dlvumeta.yaml` in the title-specific directory.
+Therefore, `mkmeta.rb`, `mkjson.rb`, and `edit-dlvoice.rb` must be updated simultaneously.
+
+To convert from `meta.yaml` to `.dlvumeta.yaml`, use `utils/split-metayaml.rb`.
+This must be executed on the library directory.

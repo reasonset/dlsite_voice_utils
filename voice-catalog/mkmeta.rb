@@ -2,61 +2,36 @@
 require 'yaml'
 require 'date'
 
+META_BASE = {
+  "tags" => [],
+  "duration" => nil,
+  "rate" => nil,
+  "description" => "",
+  "note" => [],
+}
+
 list = Dir.glob("../Voice/_*/_*/*") + Dir.glob("../Voice/_*/[^_]*") + Dir.glob("../Voice/[^_]*")
+meta = (YAML.unsafe_load File.read "meta.yaml") rescue {}
 
-DB = {}
+list.reject! do |i|
+  !File.directory?(i) ||
+  (File.fnmatch("../Voice/_*/*", i) && FileTest.symlink?(i)) || # Skip circle alias.
+  (File.fnmatch("../Voice/_*/_*/*", i) && FileTest.symlink?(i)) # Skip circle alias.
+end
 
-list.each do |i|
-  next if !File.directory?(i)
-  next if File.fnmatch("../Voice/_*/*", i) && FileTest.symlink?(File.dirname i) # Skip circle alias.
-  next if File.fnmatch("../Voice/_*/_*/*", i) && FileTest.symlink?(File.dirname i) # Skip circle alias.
-  title = File.basename(i)
-  if DB[title]
-    abort "title #{title} is already exist."
+list.each do |titledir|
+  outpath = File.join(titledir, ".dlvumeta.yaml")
+  if File.exist? outpath
+    next
   end
 
-  DB[title] = i
-end
+  puts "Create for #{titledir}"
+  btime = begin
+    File.birthtime(titledir).to_date
+  rescue NotImplementedError
+    File.mtime(titledir).to_date
+  end
 
-meta = (Psych.unsafe_load File.read "meta.yaml") rescue {}
-
-DB.each do |k, v|
-  # parts = v.sub(%r!^\.\./Voice/!, "").split("/")
-  # circle = nil
-  # series = nil
-  # if parts.length == 3
-    # circle = parts[0][1..]
-    # series = parts[1][1..]
-  # elsif parts.length == 2
-    # circle = parts[0][1..]
-  # end
-
-  if meta[k]
-    meta[k].merge!({
-      "path" => v,
-      # "circle" => circle,
-      # "series" => series,
-    })
-  else
-    btime = begin
-      File.birthtime(v).to_date
-    rescue NotImplementedError
-      File.mtime(v).to_date
-    end
-    meta[k] = {
-      "path" => v,
-      "btime" => btime,
-      # "circle" => circle,
-      # "series" => series,
-      "tags" => [],
-      "duration" => nil,
-      "rate" => nil,
-      "description" => "",
-      "note" => [],
-    }
-  end 
-end
-
-File.open("meta.yaml", "w") do |f|
-  YAML.dump meta, f
+  meta = {"btime" => btime}.merge(META_BASE)
+  File.open(outpath, "w") {|f| YAML.dump meta, f}
 end

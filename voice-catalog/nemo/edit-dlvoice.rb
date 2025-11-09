@@ -11,7 +11,7 @@ class EditDLVoice
     
     puts "You ran on #{@curdir}"
 
-    until File.exist? "#{Dir.pwd}/_VoiceLibrary"
+    until File.exist? ".dlvumeta.yaml"
       Dir.chdir("..")
       if Dir.pwd == "/"
         abort "Cannot find library directory."
@@ -19,45 +19,24 @@ class EditDLVoice
     end
     @libdir = Dir.pwd
     
-    puts "Library directory found: #{@libdir}"
-
-    if index = (crp = @curdir.split("/")).index {|i| i == ".library"}
-      libid = crp[index + 1]
-      titles = Dir["Voice/_*/_*/*", "Voice/_*/[^_]*", "Voice/[^_]*"].select {|i| File.symlink? i }
-      title = titles.find {|i| File.readlink(i).split("/").include? libid }
-      @title = title.split("/").last
-    else
-      crp = @curdir[@libdir.length .. -1]
-      unless crp.split("/")[0] == "Voice"
-        abort "You need to run under voice title directory."
-      end
-
-      if crp.length > 2 && crp[1][0] == "_" && crp[2][0] == "_"
-        @title = crp[3]
-      elsif crp[1][0] == "_"
-        @title = crp[2]
-      else
-        @title = crp[1]
-      end
-    end
-
-    puts "Reading database..."
-    @library = YAML.unsafe_load(File.read "_VoiceLibrary/meta.yaml")
-
-    unless @library[@title]
-      abort "Title #{@title} not found in database"
-    end
-
+    puts "Title directory found: #{@libdir}"
+    
+    orig_data = YAML.unsafe_load File.read ".dlvumeta.yaml"
+    
     Tempfile.open(["dlvoice_", ".yaml"]) do |fp|
-      before = YAML.dump @library[@title]
+      before = YAML.dump orig_data
       File.open(fp.path, "w") {|f| f.write before }
       system((ENV["EDITOR"] || "vim"), fp.path)
       after = File.read fp.path
       if before != after
         puts "Writing database..."
-        entity = YAML.unsafe_load(after)
-        @library[@title] = entity
-        File.open("_VoiceLibrary/meta.yaml", "w") {|f| YAML.dump(@library, f) }
+        begin
+          entity = YAML.unsafe_load(after)
+          entity["reviewed_at"] = Date.today
+          File.open(".dlvumeta.yaml", "w") {|f| YAML.dump(entity, f) }
+        rescue
+          puts "!! Broken YAML format."
+        end
       else
         puts "Metadata has no change."
       end

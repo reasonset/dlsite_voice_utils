@@ -2,7 +2,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <title>音声作品検索</title>
+    <title>Search ASMR Titles</title>
     <style>
 .sorter {
   background-color: rgb(197, 228, 232);
@@ -65,14 +65,14 @@ tr:hover {
   </head>
   <body>
     <fieldset>
-      <legend>検索</legend>
+      <legend>Search</legend>
       <form id="SearchForm">
-        <label>タグ
+        <label>Tags
           <select id="TagOptions">
             <option value="">---</option>
           </select>
         </label>
-        <label>評価下限
+        <label>Min rate
           <select id="SearchRate">
             <option value="">---</option>
             <option value="5">5</option>
@@ -81,25 +81,25 @@ tr:hover {
             <option value="2">2</option>
           </select>
         </label>
-        <label>出演者
+        <label>Casts
           <select id="ArtistOptions">
             <option value="">---</option>
           </select>
         </label>
-        <label>サークル
+        <label>Circle
           <select id="CircleOptions">
             <option value="">---</option>
           </select>
         </label>
         <label>
-          長さ
+          Dur.
           <input type="number" max="1000" id="DurationMin" /> 〜
           <input type="number" max="1000" id="DurationMax" />
         </label>
-        <label>キーワード <input type="text" size="16" id="SearchKw" /></label>
+        <label>Keyword <input type="text" size="16" id="SearchKw" /></label>
         <input id="ResetBtn" type="reset" />
       </form>
-      <label><input type="checkbox" id="HideFilelist" /> ファイルリストを表示</label>
+      <label><input type="checkbox" id="HideFilelist" /> Show file list</label>
     </fieldset>
     <table border="1" id="MainTable" class="hide_filelist">
       <colgroup>
@@ -118,18 +118,18 @@ tr:hover {
       </colgroup>
       <thead>
         <tr>
-          <th>カバー</th>
-          <th name="sorter" class="sorter " data-prop="key" data-type="str" scope="col">作品名</th>
-          <th name="sorter" class="sorter" data-prop="circle" data-type="str" scope="col">サークル</th>
-          <th name="sorter" class="sorter" data-prop="series" data-type="str" scope="col">シリーズ</th>
-          <th name="sorter" class="sorter" data-prop="actress" data-type="str[]" scope="col">出演者</th>
+          <th>Art</th>
+          <th name="sorter" class="sorter " data-prop="key" data-type="str" scope="col">Title</th>
+          <th name="sorter" class="sorter" data-prop="circle" data-type="str" scope="col">Circle</th>
+          <th name="sorter" class="sorter" data-prop="series" data-type="str" scope="col">Series</th>
+          <th name="sorter" class="sorter" data-prop="actress" data-type="str[]" scope="col">Casts</th>
           <th name="sorter" class="sorter" data-prop="btime" data-type="dstr" scope="col">btime</th>
-          <th scope="col">タグ</th>
-          <th name="sorter" class="sorter" data-prop="duration" data-type="num" scope="col">長さ</th>
-          <th name="sorter" class="sorter" data-prop="rate" data-type="num" scope="col">評価</th>
-          <th>概要</th>
-          <th>ノート</th>
-          <th class="filelist_col">ファイルリスト</th>
+          <th scope="col">Tags</th>
+          <th name="sorter" class="sorter" data-prop="duration" data-type="num" scope="col">Dur.</th>
+          <th name="sorter" class="sorter" data-prop="rate" data-type="num" scope="col">Rate</th>
+          <th>🗒</th>
+          <th>Notes</th>
+          <th class="filelist_col">File list</th>
         </tr>
       </thead>
       <tbody id="ListBody">

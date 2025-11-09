@@ -24,7 +24,7 @@ artists.each do |one|
   if File.basename(one) =~ /\[(.*?)\]_(.*)/
     artists_sound_map[$2] = $1
     name = $2
-  else 
+  else
     name = File.basename one
   end
   titles = Dir.children one
@@ -43,8 +43,19 @@ artists.each do |one|
   end
 end
 
+titles = {}
+Dir.glob("../Voice/**/.dlvumeta.yaml").each do |fp|
+  path = File.dirname fp
+  title = File.basename path
+  titlemeta = YAML.unsafe_load File.read fp
+
+  abort "Title #{title} is duplicated." if titles[title]
+
+  titles[title] = {"path" => path}.merge(titlemeta)
+end
+
 meta = {
-  "titles" => (Psych.unsafe_load File.read "meta.yaml")
+  "titles" => titles
 }
 
 meta["titles"].each do |k, v|
@@ -96,9 +107,13 @@ meta["titles"].each do |k, v|
 
   ##### Complete Description
   if !v["description"] or v["description"].empty?
-    Find.find(v["path"])
-    unless files[:text].empty?
-      v["description"] = NKF.nkf("-w", File.read(files[:text].first))
+    if v["description-path"] && File.exist?(File.join(v["path"], v["description-path"]))
+      v["description"] = File.read File.join(v["path"], v["description-path"])
+    else
+      Find.find(v["path"])
+      unless files[:text].empty?
+        v["description"] = NKF.nkf("-w", File.read(files[:text].first))
+      end
     end
   end
 
